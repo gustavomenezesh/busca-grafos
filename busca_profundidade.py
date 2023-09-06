@@ -1,6 +1,7 @@
 class Graph:
 
   def __init__(self, filename):
+    self.filename = filename
     self.adjacencyMatrix = []
     self.adjacencyList = []
     self.depths = []
@@ -27,44 +28,47 @@ class Graph:
           line.append([self.adjacencyMatrix[i][j], '0,0,0'])
         self.colors.append(line)
 
-graph1 = Graph('graph2.txt')
+class DepthSearch:
+  def __init__(self, graph, vert):
+    self.t = 0
+    self.graph = graph
+    self.init()
+    self.P(vert)
+    self.generateGdf()
 
-t = 0
-def init(graph):
-  for i in range(graph.n):
-    graph.depths.append([0,0,0])
+  def init(self):
+    for i in range(self.graph.n):
+      self.graph.depths.append([0,0,0])     #[PE, PS, PAI]
 
-def colorEdge(graph, v, w, color):
-  graph.colors[v-1][w-1][1] = color
+  def colorEdge(self, v, w, color):
+    self.graph.colors[v-1][w-1][1] = color
 
-def P(graph, v):
-  global t
-  t = t + 1
-  graph.depths[v-1][0] = t
-  for i in range(len(graph.adjacencyList[v-1])):
-    w = graph.adjacencyList[v-1][i]
-    if(graph.depths[w-1][0] == 0):
-      colorEdge(graph, v, w, '0,0,255')
-      graph.depths[w-1][2] = v
-      P(graph, w)
-    else:
-      if(graph.depths[w-1][1] == 0 and w != graph.depths[v-1][2]):
-        colorEdge(graph, v, w, '255,0,0')
-  t = t + 1
-  graph.depths[v-1][1] = t
+  def P(self, v):
+    self.t = self.t + 1
+    self.graph.depths[v-1][0] = self.t
+    for i in range(len(self.graph.adjacencyList[v-1])):
+      w = self.graph.adjacencyList[v-1][i]
+      if(self.graph.depths[w-1][0] == 0):
+        self.colorEdge(v, w, '0,0,255')
+        self.graph.depths[w-1][2] = v
+        self.P(w)
+      else:
+        if(self.graph.depths[w-1][1] == 0 and w != self.graph.depths[v-1][2]):
+          self.colorEdge(v, w, '255,0,0')
+    self.t = self.t + 1
+    self.graph.depths[v-1][1] = self.t
 
-def generateGdf(graph):
-  with open('graph2.gdf', 'w') as arquivo:
-    arquivo.write('nodedef>name VARCHAR,label VARCHAR\n')
-    for i in range(graph.n):
-      arquivo.write(str(i+1)+','+str(i+1)+'\n')
-    arquivo.write('edgedef>node1 VARCHAR,node2 VARCHAR,directed BOOLEAN,color VARCHAR\n')
-    for i in range(graph.n):
-      for j in range(graph.n):
-        if(graph.colors[i][j][0] and graph.colors[i][j][1] != '0,0,0'):
-          arquivo.write(str(i+1)+","+str(j+1)+",false,'"+graph.colors[i][j][1]+"'\n")
+  def generateGdf(self):
+    outputFile = self.graph.filename.split('.')[0] + '.gdf'
+    with open(outputFile, 'w') as arquivo:
+      arquivo.write('nodedef>name VARCHAR,label VARCHAR\n')
+      for i in range(self.graph.n):
+        arquivo.write(str(i+1)+','+str(i+1)+'\n')
+      arquivo.write('edgedef>node1 VARCHAR,node2 VARCHAR,directed BOOLEAN,color VARCHAR\n')
+      for i in range(self.graph.n):
+        for j in range(self.graph.n):
+          if(self.graph.colors[i][j][0] and self.graph.colors[i][j][1] != '0,0,0'):
+            arquivo.write(str(i+1)+","+str(j+1)+",false,'"+self.graph.colors[i][j][1]+"'\n")
 
-
-init(graph1)
-P(graph1, 1)
-generateGdf(graph1)
+graph = Graph('graph1.txt')
+DepthSearch(graph, 1)
